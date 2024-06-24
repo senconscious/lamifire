@@ -1,5 +1,5 @@
-name: Prototype to create llamafile
-run-name: Create Llamafile and upload it 🚀
+name: Create llamafile from GGUF and upload it to HF
+run-name: Create llamafile and upload it 🚀
 on: 
     workflow_dispatch:
       inputs:

@@ -9,3 +9,9 @@ services:
       - HF_TOKEN=${HF_TOKEN}
       - HF_REPO=${HF_REPO}
       - HF_REPO_FILE=${HF_REPO_FILE}
+  ollama:
+    build:
+      dockerfile: Dockerfile.ollama
+    volumes:
+      - ./ollama/:/root/.ollama/
+      - ./Olmo.Modelfile:/Modelfile

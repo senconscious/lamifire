@@ -1,0 +1,47 @@
+name: Upload model to Ollama
+run-name: Create Ollama model and upload it 🚀
+on: 
+    workflow_dispatch:
+      inputs:
+        OLLAMA_FULL_REPO:
+          description: 'Full repo name'
+          required: true
+          type: string
+          default: 'darkmoon/olmo:test'
+        REMOTE_GGUF_MODEL:
+          description: 'Link from which to download gguf version of the model'
+          required: true
+          type: string
+          default: 'https://huggingface.co/robolamp/OLMo-1.7-7B-Quantized/resolve/main/OLMo-1.7-7b.IQ1_M.gguf?download=true'
+jobs:
+  create-ollama-model-and-upload:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install ollama
+        run: |
+            curl -fsSL https://ollama.com/install.sh | sh
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            Olmo.Modelfile.example
+          sparse-checkout-cone-mode: false
+      - name: Prepare ollama working folder
+        run: |
+          sudo chmod 777 -R /usr/share/ollama
+          sudo echo "${{ secrets.OLLAMA_PRIVATE_KEY }}" > /usr/share/ollama/.ollama/id_ed25519
+          sudo echo "${{ secrets.OLLAMA_PUBLIC_KEY }}" > /usr/share/ollama/.ollama/id_ed25519.pub
+      - name: Download gguf model
+        run:  |
+          sudo apt update
+          sudo apt install -y curl sed
+          curl -L ${{ inputs.REMOTE_GGUF_MODEL }} -o model.gguf
+      - name: Create Modelfile
+        run: |
+          cp Olmo.Modelfile.example Modelfile
+          sed -i 's/<path_to_model>/\.\/model\.gguf/g' Modelfile
+      - name: Convert model and upload it
+        run: |
+            ollama create ${{ inputs.OLLAMA_FULL_REPO }} -f Modelfile
+            ollama push ${{ inputs.OLLAMA_FULL_REPO }}
+            
